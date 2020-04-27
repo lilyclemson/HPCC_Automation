@@ -48,7 +48,8 @@ let upload = () => {
         method: 'POST',
         uri: _clusterAddrAndPort + '/Filespray/UploadFile.json?upload_' +
           '&NetAddress=' + _ClusterIP + '&rawxml_=1&OS=2&' +
-          'Path=/var/lib/HPCCSystems/mydropzone/hpccsystems/covid19/file/raw/johnhopkins/v2/',
+          // 'Path=/var/lib/HPCCSystems/mydropzone/hpccsystems/covid19/file/raw/johnhopkins/v2/',
+          'Path=/var/lib/HPCCSystems/mydropzone/Incoming-FWLogs/Incoming/',
         formData: {
           'UploadedFiles[]': {
             value: _fileStream,

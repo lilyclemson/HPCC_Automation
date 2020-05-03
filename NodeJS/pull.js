@@ -3,6 +3,14 @@ let schedule = require('node-schedule');
 let git = require('simple-git')('./COVID-19');
 let fs = require('fs');
 let request = require('request-promise');
+require('dotenv').config();
+
+username =  process.env.DB_USERNAME;
+password = process.env.DB_PASSWORD;
+hostname = process.env.DB_HOSTNAME;
+lzip = process.env.DB_LZIP;
+
+
 
 // let REPO = 'https://github.com/CSSEGISandData/COVID-19.git';
 // gitP().silent(true)
@@ -10,7 +18,7 @@ let request = require('request-promise');
 //   .then(() => console.log('finished'))
 //   .catch((err) => console.error('failed: ', err));
 
-let j = schedule.scheduleJob('0-59/5 * * * * *', function(){
+let j = schedule.scheduleJob('* * 0-23/6 * * *', function(){
   let today = new Date();
   let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -44,14 +52,14 @@ let upload = (filename) => {
   let todaysFilePath = path.join(__dirname, 'COVID-19/' + todaysFileName);
   return new Promise((resolve, reject) => {
     if (fs.existsSync(todaysFilePath)) {
-      let _clusterAddrAndPort = '';
-      let _ClusterIP = '';
+      let _clusterAddrAndPort = hostname;
+      let _ClusterIP = lzip;
       let _mimetype = 'text/csv';
       let _fileStream = fs.createReadStream(todaysFilePath);
       let _clusterFilename = path.basename(todaysFileName);
         request({
           method: 'POST',
-          auth: {},
+          auth: {'user' : username, 'password' : password},
           uri: _clusterAddrAndPort + '/Filespray/UploadFile.json?upload_' +
             '&NetAddress=' + _ClusterIP + '&rawxml_=1&OS=2&' +
             'Path=/var/lib/HPCCSystems/mydropzone/hpccsystems/covid19/file/raw/JohnHopkins/V2/',

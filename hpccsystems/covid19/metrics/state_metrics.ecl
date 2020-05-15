@@ -1,4 +1,4 @@
-#WORKUNIT('name', 'hpccsystems_covid19-test_metrics_by_us_states');
+#WORKUNIT('name', 'hpccsystems_covid19-test_metrics_by_us_states_kafka');
 #WORKUNIT('protect', TRUE);
 
 IMPORT Std;

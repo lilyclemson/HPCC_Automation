@@ -5,10 +5,11 @@ IMPORT Kafka;
 
 EXPORT Util := MODULE
 
-EXPORT applicationId:= 'ebd584cd-06b8-4e84-8272-85f7f986d6d5';
-EXPORT defaultGUID := STD.Date.Today() + '' + STD.Date.CurrentTime(True);
+EXPORT applicationId:= '40650e2a-da00-4192-9fd9-36cf13ab3094';
+EXPORT guidFilePath := '~covid19::kafka::guid';
+EXPORT defaultGUID :=  DATASET(guidFilePath, {STRING s}, FLAT)[1].s;
 EXPORT defaultTopic := 'Dataflow';
-EXPORT defaultBroker := 'alalqalfapp01.risk.regn.net:9092';
+EXPORT defaultBroker := '40.71.7.106:9092';
 EXPORT l_json := RECORD
   STRING applicationid;
   STRING wuid;
@@ -19,18 +20,19 @@ END;
 EXPORT genInstanceID := FUNCTION
     guid := STD.Date.Today() + '' + STD.Date.CurrentTime(True);
     guidDS := DATASET(ROW({guid}, {STRING s}));
-    RETURN OUTPUT( guidDS, , '~covid19::kafka::guid', OVERWRITE);
+    RETURN OUTPUT( guidDS, , guidFilePath, OVERWRITE);
 END;
 
 EXPORT sendMsg(
               STRING broker = defaultBroker,
               STRING topic = defaultTopic,
               STRING appID = applicationId,
+              STRING wuid = WORKUNIT,
               STRING instanceid = defaultGUID,
               STRING msg = '') := FUNCTION
 
 
-j :=  '{' + TOJSON(ROW({appID, WORKUNIT, instanceid, msg},l_json)) + '}';
+j :=  '{' + TOJSON(ROW({appID, wuid, instanceid, msg},l_json)) + '}';
 kafkaMsg := DATASET([{j}], {STRING line});
 
 p := kafka.KafkaPublisher( topic, broker );
@@ -46,11 +48,12 @@ EXPORT sendFailMsg(
               STRING broker = defaultBroker,
               STRING topic = defaultTopic,
               STRING appID = applicationId,
+              STRING wuid = WORKUNIT,
               STRING instanceid = defaultGUID,
               STRING msg = 'FAIL') := FUNCTION
 
 
-j :=  '{' + TOJSON(ROW({appID, WORKUNIT, instanceid, msg},l_json)) + '}';
+j :=  '{' + TOJSON(ROW({appID, wuid, instanceid, msg},l_json)) + '}';
 kafkaMsg := DATASET([{j}], {STRING line});
 
 p := kafka.KafkaPublisher( topic, broker );
@@ -66,6 +69,26 @@ EXPORT sendSuccessMsg(
               STRING appID = applicationId,
               STRING instanceid = defaultGUID,
               STRING msg = 'SUCCESS') := FUNCTION
+
+
+j :=  '{' + TOJSON(ROW({appID, WORKUNIT, instanceid, msg},l_json)) + '}';
+kafkaMsg := DATASET([{j}], {STRING line});
+
+p := kafka.KafkaPublisher( topic, broker );
+sending := p.PublishMessage(kafkaMsg[1].line);
+o := OUTPUT(kafkaMsg );
+
+RETURN WHEN(sending,o);
+
+END;
+
+
+EXPORT sendWarningMsg(
+              STRING broker = defaultBroker,
+              STRING topic = defaultTopic,
+              STRING appID = applicationId,
+              STRING instanceid = defaultGUID,
+              STRING msg = 'WARNING') := FUNCTION
 
 
 j :=  '{' + TOJSON(ROW({appID, WORKUNIT, instanceid, msg},l_json)) + '}';

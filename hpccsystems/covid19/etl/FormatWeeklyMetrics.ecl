@@ -3,7 +3,7 @@ IMPORT hpccsystems.covid19.utils.CatalogUSStates as states;
 IMPORT Std;
 
 
-#WORKUNIT('name', 'hpccsystems_covid19-test_FormateWeeklyMetrics');
+#WORKUNIT('name', 'hpccsystems_covid19-test_FormateWeeklyMetrics_kafka');
 #WORKUNIT('protect', TRUE);
 
 metricsScope := '~hpccsystems::covid19-test::file::public::metrics::';

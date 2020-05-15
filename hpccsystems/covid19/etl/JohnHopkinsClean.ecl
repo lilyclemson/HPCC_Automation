@@ -4,7 +4,7 @@ IMPORT hpccsystems.covid19.file.public.JohnHopkins as jh;
 
 IMPORT Std; 
 
-#WORKUNIT('name', 'hpccsystems_covid19-test_clean');
+#WORKUNIT('name', 'hpccsystems_covid19-test_clean_kafka');
 #WORKUNIT('protect', TRUE);
 
 scopeName := 'hpccsystems::covid19-test::file::raw::JohnHopkins::V2';

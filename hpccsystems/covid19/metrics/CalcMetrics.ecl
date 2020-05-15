@@ -1,4 +1,6 @@
 ﻿IMPORT $.Types;
+IMPORT TomboloKafka.Util;
+
 metric_t := Types.metric_t;
 statsRec := Types.statsRec;
 metricsRec := Types.metricsRec;
@@ -24,7 +26,7 @@ EXPORT CalcMetrics := MODULE
                             SELF.newDeaths := LEFT.cumDeaths - RIGHT.cumDeaths,
                             SELF.periodCGrowth := IF(SELF.prevCases > 0, SELF.newCases / SELF.prevCases, 0),
                             SELF.periodMGrowth := IF(SELF.prevDeaths > 0, SELF.newDeaths / SELF.prevDeaths, 0),
-                            SELF := LEFT), LEFT OUTER),newCases >= 0, 'Warning: newCases < 0.  Location = ' + location + '(' + date + ')');
+                            SELF := LEFT), LEFT OUTER),newCases >= 0, 'Warning: newCases < 0.  Location = ' + location + '(' + date + ')'):SUCCESS(EVALUATE(Util.sendWarningMsg()));
 
         // Go infectionPeriod days back to see how many have recovered and how many are still active
         statsE2 := JOIN(statsE1, statsE1, LEFT.location = RIGHT.location AND LEFT.id = RIGHT.id - InfectionPeriod, TRANSFORM(RECORDOF(LEFT),
@@ -110,7 +112,7 @@ EXPORT CalcMetrics := MODULE
                                                 IF(LEFT.mr > 1,LEFT.mR - 1, 0) +
                                                 IF(LEFT.medIndicator < 0, -LEFT.medIndicator, 0) +
                                                 IF(LEFT.sdIndicator < 0, -LEFT.sdIndicator, 0))  / scaleFactor,
-                                        SELF := LEFT)), heatIndex = 0 OR (cR > 0 OR mR > 0 OR medIndicator < 0 OR sdIndicator < 0 ), 'hi: ' + location + ',' + heatIndex + ',' + active + ',' + cR + ',' + mR + ',' + medIndicator + ',' + sdIndicator);
+                                        SELF := LEFT)), heatIndex = 0 OR (cR > 0 OR mR > 0 OR medIndicator < 0 OR sdIndicator < 0 ), 'hi: ' + location + ',' + heatIndex + ',' + active + ',' + cR + ',' + mR + ',' + medIndicator + ',' + sdIndicator):SUCCESS(EVALUATE(Util.sendWarningMsg()));;
         metricsRec calc2(metricsRec l, metricsRec r) := TRANSFORM
             R1 := IF(r.mR > 0, (r.cr + r.mR) / 2, r.cR);
             prevState := IF(l.location = r.location, l.iState, 'Initial');

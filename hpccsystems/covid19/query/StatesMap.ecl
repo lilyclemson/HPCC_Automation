@@ -1,4 +1,4 @@
-#WORKUNIT('name', 'hpccsystems_covid19-test_query_states_map_kafka');
+#WORKUNIT('name', 'hpccsystems_covid19-test_query_states_map');
 #WORKUNIT('protect', TRUE);
 
 IMPORT hpccsystems.covid19.file.public.DailyMetrics AS dailyMetrics;  

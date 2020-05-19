@@ -1,4 +1,5 @@
-#WORKUNIT('name', 'hpccsystems_covid19_query_counties_map');
+#WORKUNIT('name', 'hpccsystems_covid19-test_query_counties_map_kafka');
+#WORKUNIT('protect', TRUE);
 
 IMPORT hpccsystems.covid19.file.public.DailyMetrics AS dailyMetrics;  
 IMPORT hpccsystems.covid19.file.public.WeeklyMetrics AS weeklyMetrics;  
@@ -28,6 +29,7 @@ daily := JOIN(dailyMetrics.counties (date=latestDate), weeklyMetrics.counties (p
                       STRING period_string,
                       REAL8 cr,
                       REAL8 mr,
+                      REAL8 R,
                       REAL8 sd_indicator,
                       REAL8 med_indicator,
                       REAL8 imort,
@@ -49,15 +51,16 @@ daily := JOIN(dailyMetrics.counties (date=latestDate), weeklyMetrics.counties (p
                       SELF.status_numb := CASE(RIGHT.istate, 
                                         'Initial' => 0, 
                                         'Recovered' => 1, 
-                                        'Recovering' => 100,
-                                        'Stabilized' => 1000,
-                                        'Stabilizing' => 5000,
-                                        'Emerging' => 10000,
-                                        'Spreading' => 20000,
-                                        'Regressing' => 40000, 0),
+                                        'Recovering' => 2,
+                                        'Stabilized' => 3,
+                                        'Stabilizing' => 4,
+                                        'Emerging' => 5,
+                                        'Spreading' => 6,
+                                        'Regressing' => 7, 0),
                       SELF.period_string := Std.Date.DateToString(RIGHT.startdate , '%B %e, %Y') + ' - ' + Std.Date.DateToString(RIGHT.enddate , '%B %e, %Y'),
                       SELF.cr := RIGHT.cr,
                       SELF.mr := RIGHT.mr,
+                      SELF.R := RIGHT.R,
                       SELF.sd_indicator := RIGHT.sdIndicator,
                       SELF.med_indicator := RIGHT.medIndicator,
                       SELF.imort := RIGHT.imort,
@@ -74,5 +77,10 @@ OUTPUT(TABLE(fipsCorrectedDaily, {date,
                       deaths_total:= SUM(GROUP, deaths), 
                       new_deaths_total:= SUM(GROUP, new_deaths),
                       active_total:= SUM(GROUP, active),
-                      recovered_total := SUM(GROUP, recovered)
+                      recovered_total := SUM(GROUP, recovered),
+                      cases_max := (SUM(GROUP, cases) - MAX(GROUP,cases))/50,//Compensating for Ney York City which has more that 100k cases
+                      new_cases_max := MAX(GROUP, new_cases),
+                      deaths_max := (SUM(GROUP, deaths) - MAX(GROUP,deaths))/50,//Compensating for Ney York City which has more that 100k cases
+                      new_deaths_max := MAX(GROUP, new_deaths),
+                      status_max := 7,
                       }, date),,NAMED('summary'));          

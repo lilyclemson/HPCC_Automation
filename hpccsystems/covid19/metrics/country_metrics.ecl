@@ -13,6 +13,8 @@ metricsRec := Types.metricsRec;
 populationRec := Types.populationRec;
 CalcMetrics := COVID19.CalcMetrics;
 
+minActive := 200;  // Minimum cases to consider a location active.
+
 rawFilePath := '~hpccsystems::covid19-test::file::public::johnhopkins::world.flat';
 
 scRecord := RECORD
@@ -49,7 +51,7 @@ rawData4 := rawData3;
 //OUTPUT(rawData4[..10000], ALL, NAMED('fixedupData'));
 //OUTPUT(rawData4(country = 'CHINA'), ALL, NAMED('ChinaFixed'));
 // Roll up the data by country for each date
-rollupDat := SORT(TABLE(rawData4, {country, update_date, cConfirmed := SUM(GROUP, confirmed), cDeaths := SUM(GROUP, deaths)}, country, update_date), country, update_date);
+rollupDat := SORT(TABLE(rawData4, {fips, country, update_date, cConfirmed := SUM(GROUP, confirmed), cDeaths := SUM(GROUP, deaths)}, country, update_date), country, update_date);
 
 OUTPUT(rollupDat, ALL, NAMED('RollupStats'));
 
@@ -58,6 +60,7 @@ chinaDat := rollupDat(country = 'CHINA');
 //OUTPUT(chinaDat, ALL,  NAMED('ChinaDataFixed'));
 
 statsData := PROJECT(rollupDat, TRANSFORM(statsRec,
+																						SELF.fips := LEFT.fips,
                                             SELF.date := LEFT.update_date,
                                             SELF.location := LEFT.country,
                                             SELF.cumCases := LEFT.cConfirmed,
@@ -77,11 +80,11 @@ OUTPUT(popData, NAMED('PopulationData'));
 statsE := CalcMetrics.DailyStats(statsData);
 OUTPUT(statsE, ,'~hpccsystems::covid19-test::file::public::metrics::daily_by_country.flat', Thor, OVERWRITE);
 
-metrics0 := CalcMetrics.WeeklyMetrics(statsData, popData);
+metrics0 := CalcMetrics.WeeklyMetrics(statsData, popData, minActive);
 
 // Filter out some bad country names that only had data for one period
-metrics := metrics0(period != 1 OR endDate > 20200401);
-
+metrics1 := metrics0(period != 1 OR endDate > 20200401);
+metrics := metrics1(period <= 5);
 
 OUTPUT(metrics, ALL, NAMED('MetricsByWeek'));
 OUTPUT(metrics, ,'~hpccsystems::covid19-test::file::public::metrics::weekly_by_country.flat', Thor, OVERWRITE);
@@ -117,7 +120,3 @@ OUTPUT(sortedBySeverity, ALL, NAMED('ByInfectionState'));
 
 sortedByHeatIndx := COVID19.HotSpotsRpt(metrics);
 OUTPUT(sortedByHeatIndx, ALL, NAMED('HotSpots'));
-
-worldTotals0 := TABLE(metrics, {INTEGER weekEnding := endDate, totCases := SUM(GROUP, cases), totDeaths := SUM(GROUP, deaths), totActive := SUM(GROUP, active), totRecovered := SUM(GROUP, recovered), metric_t Avg_cR := AVE(GROUP, cR, cR > 0), metric_t Avg_mR := AVE(GROUP, mR, mR > 0), metric_t avg_iMort := AVE(GROUP, iMort, iMort > 0)}, endDate);
-worldTotals := SORT(worldTotals0, -weekEnding);
-OUTPUT(worldTotals, NAMED('WorldTotals'));

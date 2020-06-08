@@ -13,11 +13,6 @@ hostname_azure = process.env.DB_HOSTNAME_AZURE;
 lzip_azure = process.env.DB_LZIP_AZURE;
 
 
-// let git = require('simple-git');
-// let REPO = 'https://github.com/CSSEGISandData/COVID-19.git';
-// git().silent(true)
-//   .clone(REPO)
-//   .then(() => console.log('finished'))
 
 let j = schedule.scheduleJob('* * 0-23/6 * * *', function(){
   let today = new Date();

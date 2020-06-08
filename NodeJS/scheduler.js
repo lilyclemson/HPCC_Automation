@@ -72,7 +72,7 @@ let filenames = [world_cumconfirmed,world_newCases,
 // scrapeAndupload function:
 // run the scrape.py to generate the scraped files and upload to LZ
 async function scrapeAndupload() {
-  const { stdout, stderr } = await exec('python ./scrape.py');
+  const { stdout, stderr } = await exec('python3 ./scrape.py');
   console.log('stdout:', stdout);
   console.error('stderr:', stderr);
 

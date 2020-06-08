@@ -12,8 +12,6 @@ hostname = process.env.DB_HOSTNAME_AWS;
 lzip = process.env.DB_LZIP_AWS;
 
 
-// setup scheduler to run every 10 minute -- just for testing
-let j = schedule.scheduleJob('0 0-23/4 * * *', function(){
 
 // upload function: upload files to landing zone
 let upload = (filename) => {
@@ -69,7 +67,7 @@ let filenames = [world_cumconfirmed,world_newCases,
 // scrapeAndupload function:
 // run the scrape.py to generate the scraped files and upload to LZ
 async function scrapeAndupload() {
-  const { stdout, stderr } = await exec('python3 ./scrape.py');
+  const { stdout, stderr } = await exec('python ./scrape.py');
   console.log('stdout:', stdout);
   console.error('stderr:', stderr);
 
@@ -82,6 +80,3 @@ async function scrapeAndupload() {
 
 // run the scrapeAndupload()
 scrapeAndupload();
-
-
-});

@@ -4,3 +4,4 @@ node_modules
 eclcc.log
 .eclcc/
 .env
+data/

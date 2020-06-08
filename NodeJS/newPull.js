@@ -37,7 +37,7 @@ git
       console.log(typeof(item));
       if(item.startsWith('csse_covid_19_data/csse_covid_19_daily_reports/') === true
          && item.search('.csv') != -1){
-        let uploadResponseAzure = await upload2Azure(item);
+        // let uploadResponseAzure = await upload2Azure(item);
         let uploadResponseAWS = await upload2AWS(item);
       }
     });

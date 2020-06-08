@@ -7,8 +7,8 @@ require('dotenv').config();
 
 username =  process.env.DB_USERNAME;
 password = process.env.DB_PASSWORD;
-hostname = process.env.DB_HOSTNAME;
-lzip = process.env.DB_LZIP;
+hostname = process.env.DB_HOSTNAME_AZURE;
+lzip = process.env.DB_LZIP_AZURE;
 
 
 

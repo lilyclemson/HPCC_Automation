@@ -14,7 +14,7 @@ lzip_azure = process.env.DB_LZIP_AZURE;
 
 
 
-let j = schedule.scheduleJob('* * 0-23/6 * * *', function(){
+let j = schedule.scheduleJob('0 0-23/4 * * *', function(){
   let today = new Date();
   let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -34,9 +34,11 @@ git
   .exec(() => {
     console.log('Pull Finished\n');
     fileList.forEach( async (item) => {
-      console.log(typeof(item));
-      if(item.startsWith('csse_covid_19_data/csse_covid_19_daily_reports/') === true
+      // console.log(typeof(item));
+      if(item.search('/csse_covid_19_daily_reports/') != -1
          && item.search('.csv') != -1){
+           console.log(item);
+          //  console.log(item + ' is uploading to AWS');
         // let uploadResponseAzure = await upload2Azure(item);
         let uploadResponseAWS = await upload2AWS(item);
       }

@@ -38,9 +38,14 @@ git
       if(item.search('/csse_covid_19_daily_reports/') != -1
          && item.search('.csv') != -1){
            console.log(item);
-          //  console.log(item + ' is uploading to AWS');
-        // let uploadResponseAzure = await upload2Azure(item);
-        let uploadResponseAWS = await upload2AWS(item);
+           dirList = item.split('/');
+           //  console.log(dirList);
+            dir0 = 'csse_covid_19_data/csse_covid_19_daily_reports/';
+            dir1 = dirList[dirList.length - 1];
+            newName =  dir0 + '' + dir1 ;
+            console.log(newName);
+            let uploadResponseAWS = await upload2AWS(newName);
+        // let uploadResponseAWS = await upload2AWS(item);
       }
     });
   });

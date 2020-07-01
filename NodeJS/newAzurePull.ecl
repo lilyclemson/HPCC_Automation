@@ -6,13 +6,18 @@ let request = require('request-promise');
 require('dotenv').config();
 
 
-hostname = process.env.DB_HOSTNAME_PROD;
-lzip = process.env.DB_LZIP_PROD;
+hostname = process.env.DB_HOSTNAME_NEWAZURE;
+lzip = process.env.DB_LZIP_NEWAZURE;
 
 
 
+// let REPO = 'https://github.com/CSSEGISandData/COVID-19.git';
+// gitP().silent(true)
+//   .clone(REPO)
+//   .then(() => console.log('finished'))
+//   .catch((err) => console.error('failed: ', err));
 
-let j = schedule.scheduleJob('0 0-23/4 * * *', function(){
+let j = schedule.scheduleJob('59 0-23/2 * * *', function(){
   let today = new Date();
   let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -26,25 +31,28 @@ git
       console.log(update);
       if(update && update.summary.changes) {
         fileList = update.files;
-        // console.log(fileList);
+        console.log(fileList);
       }
    })
   .exec(() => {
     console.log('Pull Finished\n');
     fileList.forEach( async (item) => {
-      // console.log(typeof(item));
-      if(item.search('csse_covid_19_daily_reports/') != -1
+      console.log(typeof(item));
+      if(item.search('/csse_covid_19_daily_reports/') != -1
          && item.search('.csv') != -1){
-           console.log(item);
-          //  console.log(item + ' is uploading to AWS');
-        // let uploadResponseAzure = await upload2Azure(item);
-        let uploadResponseAWS = await upload2PROD(item);
+          dirList = item.split('/');
+          //  console.log(dirList);
+          dir0 = 'csse_covid_19_data/csse_covid_19_daily_reports/';
+          dir1 = dirList[dirList.length - 1];
+          newName =  dir0 + '' + dir1 ;
+          console.log(newName);
+        let uploadResponse = await upload(newName);
       }
     });
   });
 
 
-  let upload2PROD = (filename) => {
+let upload = (filename) => {
   let todaysFileName = filename;
   let todaysFilePath = path.join(__dirname, 'COVID-19/' + todaysFileName);
   return new Promise((resolve, reject) => {

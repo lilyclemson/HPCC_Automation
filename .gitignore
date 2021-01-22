@@ -3,3 +3,5 @@ node_modules
 ./NodeJS/COVID-19/ 
 eclcc.log
 .eclcc/
+.env
+data/

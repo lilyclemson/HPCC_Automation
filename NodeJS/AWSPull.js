@@ -7,18 +7,14 @@ require('dotenv').config();
 
 username =  process.env.DB_USERNAME;
 password = process.env.DB_PASSWORD;
-hostname = process.env.DB_HOSTNAME;
-lzip = process.env.DB_LZIP;
+hostname_aws = process.env.DB_HOSTNAME_AWS;
+lzip_aws = process.env.DB_LZIP_AWS;
+hostname_azure = process.env.DB_HOSTNAME_AZURE;
+lzip_azure = process.env.DB_LZIP_AZURE;
 
 
 
-// let REPO = 'https://github.com/CSSEGISandData/COVID-19.git';
-// gitP().silent(true)
-//   .clone(REPO)
-//   .then(() => console.log('finished'))
-//   .catch((err) => console.error('failed: ', err));
-
-let j = schedule.scheduleJob('* * 0-23/6 * * *', function(){
+let j = schedule.scheduleJob('0 0-23/4 * * *', function(){
   let today = new Date();
   let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -32,34 +28,80 @@ git
       console.log(update);
       if(update && update.summary.changes) {
         fileList = update.files;
-        console.log(fileList);
+        // console.log(fileList);
       }
    })
   .exec(() => {
     console.log('Pull Finished\n');
     fileList.forEach( async (item) => {
-      console.log(typeof(item));
-      if(item.startsWith('csse_covid_19_data/csse_covid_19_daily_reports/') === true
+      // console.log(typeof(item));
+      if(item.search('/csse_covid_19_daily_reports/') != -1
          && item.search('.csv') != -1){
-        let uploadResponse = await upload(item);
+           console.log(item);
+           dirList = item.split('/');
+           //  console.log(dirList);
+            dir0 = 'csse_covid_19_data/csse_covid_19_daily_reports/';
+            dir1 = dirList[dirList.length - 1];
+            newName =  dir0 + '' + dir1 ;
+            console.log(newName);
+            let uploadResponseAWS = await upload2AWS(newName);
+        // let uploadResponseAWS = await upload2AWS(item);
       }
     });
   });
 
 
-let upload = (filename) => {
+let upload2Azure = (filename) => {
   let todaysFileName = filename;
   let todaysFilePath = path.join(__dirname, 'COVID-19/' + todaysFileName);
   return new Promise((resolve, reject) => {
     if (fs.existsSync(todaysFilePath)) {
-      let _clusterAddrAndPort = hostname;
-      let _ClusterIP = lzip;
+      let _clusterAddrAndPort = hostname_azure;
+      let _ClusterIP = lzip_azure;
       let _mimetype = 'text/csv';
       let _fileStream = fs.createReadStream(todaysFilePath);
       let _clusterFilename = path.basename(todaysFileName);
         request({
           method: 'POST',
           auth: {'user' : username, 'password' : password},
+          uri: _clusterAddrAndPort + '/Filespray/UploadFile.json?upload_' +
+            '&NetAddress=' + _ClusterIP + '&rawxml_=1&OS=2&' +
+            'Path=/var/lib/HPCCSystems/mydropzone/hpccsystems/covid19/file/raw/JohnHopkins/V2/',
+          formData: {
+            'UploadedFiles[]': {
+              value: _fileStream,
+              options: {
+                filename: _clusterFilename,
+                contentType: _mimetype
+              }
+            },
+          },
+          resolveWithFullResponse: true
+        }).then((response) => {
+          console.log(response.body);
+          console.log('Upload Finished\n');
+          resolve(response);
+        }).catch((err) => {
+          console.log(err);
+          reject(err);
+        })
+      }
+    }
+  )}
+
+
+  let upload2AWS = (filename) => {
+  let todaysFileName = filename;
+  let todaysFilePath = path.join(__dirname, 'COVID-19/' + todaysFileName);
+  return new Promise((resolve, reject) => {
+    if (fs.existsSync(todaysFilePath)) {
+      let _clusterAddrAndPort = hostname_aws;
+      let _ClusterIP = lzip_aws;
+      let _mimetype = 'text/csv';
+      let _fileStream = fs.createReadStream(todaysFilePath);
+      let _clusterFilename = path.basename(todaysFileName);
+        request({
+          method: 'POST',
           uri: _clusterAddrAndPort + '/Filespray/UploadFile.json?upload_' +
             '&NetAddress=' + _ClusterIP + '&rawxml_=1&OS=2&' +
             'Path=/var/lib/HPCCSystems/mydropzone/hpccsystems/covid19/file/raw/JohnHopkins/V2/',

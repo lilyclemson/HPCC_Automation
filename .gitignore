@@ -1,9 +1,11 @@
-hpccsystems
-AutoFlow
+./hpccsystems
+covid19/
 node_modules
-./NodeJS/COVID-19/ 
+COVID-19
+covid-19-data
 eclcc.log
 .eclcc/
 .env
 data/
 .vscode
+

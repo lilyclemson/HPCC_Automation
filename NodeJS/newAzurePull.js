@@ -3,14 +3,21 @@ let schedule = require('node-schedule');
 let git = require('simple-git')('./COVID-19');
 let fs = require('fs');
 let request = require('request-promise');
+require('dotenv').config();
 
+
+hostname = process.env.DB_HOSTNAME_NEWAZURE;
+lzip = process.env.DB_LZIP_NEWAZURE;
+
+
+ 
 // let REPO = 'https://github.com/CSSEGISandData/COVID-19.git';
 // gitP().silent(true)
 //   .clone(REPO)
 //   .then(() => console.log('finished'))
 //   .catch((err) => console.error('failed: ', err));
 
-let j = schedule.scheduleJob('0-59/5 * * * * *', function(){
+let j = schedule.scheduleJob('59 0-23/2 * * *', function(){
   let today = new Date();
   let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
   let time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
@@ -31,9 +38,15 @@ git
     console.log('Pull Finished\n');
     fileList.forEach( async (item) => {
       console.log(typeof(item));
-      if(item.startsWith('csse_covid_19_data/csse_covid_19_daily_reports/') === true
+      if(item.search('/csse_covid_19_daily_reports/') != -1
          && item.search('.csv') != -1){
-        let uploadResponse = await upload(item);
+          dirList = item.split('/');
+          //  console.log(dirList);
+          dir0 = 'csse_covid_19_data/csse_covid_19_daily_reports/';
+          dir1 = dirList[dirList.length - 1];
+          newName =  dir0 + '' + dir1 ;
+          console.log(newName);
+        let uploadResponse = await upload(newName);
       }
     });
   });
@@ -44,14 +57,13 @@ let upload = (filename) => {
   let todaysFilePath = path.join(__dirname, 'COVID-19/' + todaysFileName);
   return new Promise((resolve, reject) => {
     if (fs.existsSync(todaysFilePath)) {
-      let _clusterAddrAndPort = 'http://40.71.7.106:8010/';
-      let _ClusterIP = '10.0.0.6';
+      let _clusterAddrAndPort = hostname;
+      let _ClusterIP = lzip;
       let _mimetype = 'text/csv';
       let _fileStream = fs.createReadStream(todaysFilePath);
       let _clusterFilename = path.basename(todaysFileName);
         request({
           method: 'POST',
-          auth: {'user':'xulili01', 'password':'Q4dRtHRF'},
           uri: _clusterAddrAndPort + '/Filespray/UploadFile.json?upload_' +
             '&NetAddress=' + _ClusterIP + '&rawxml_=1&OS=2&' +
             'Path=/var/lib/HPCCSystems/mydropzone/hpccsystems/covid19/file/raw/JohnHopkins/V2/',
